@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ЗП кальк" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <title>Калькулятор зарплаты</title>
+  <style>
+    :root {
+      --bg: #08101c;
+      --bg-2: #0b1220;
+      --panel: rgba(15, 23, 42, 0.95);
+      --panel-soft: rgba(255,255,255,0.05);
+      --line: rgba(255,255,255,0.10);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --blue: #3b82f6;
+      --blue-2: #60a5fa;
+      --green: #22c55e;
+      --violet: #8b5cf6;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --radius: 18px;
+      --shadow: 0 20px 40px rgba(0,0,0,.28);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; }
+    html { color-scheme: dark; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(59,130,246,.18), transparent 20%),
+        radial-gradient(circle at bottom left, rgba(139,92,246,.16), transparent 22%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: calc(12px + var(--safe-top)) 12px calc(18px + var(--safe-bottom));
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 8px 0 12px;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(180deg, rgba(8,16,28,.92), rgba(8,16,28,.72), rgba(8,16,28,0));
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue), var(--violet));
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 18px;
+      flex: 0 0 auto;
+    }
+
+    .brand-title {
+      min-width: 0;
+    }
+
+    .brand-title h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.1;
+    }
+
+    .brand-title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .install-btn {
+      flex: 0 0 auto;
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 14px;
+      background: linear-gradient(180deg, var(--blue-2), var(--blue));
+      color: #fff;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      display: none;
+    }
+
+    .install-btn.visible { display: inline-flex; }
+
+    .section {
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      margin-top: 14px;
+      overflow: hidden;
+    }
+
+    .section h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    details.section > summary {
+      list-style: none;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: -14px -14px 0;
+      padding: 14px;
+      user-select: none;
+    }
+
+    details.section > summary::-webkit-details-marker { display: none; }
+    .summary-right { color: var(--muted); font-size: 13px; }
+    details.section .section-body { padding-top: 6px; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label,
+    .field .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    input[type="month"],
+    input[type="number"] {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: rgba(96,165,250,.75);
+      background: rgba(255,255,255,.08);
+    }
+
+    input[disabled] { opacity: .65; }
+
+    .inline-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      min-height: 20px;
+    }
+
+    .inline-check input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--blue);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn,
+    .btn-secondary {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn {
+      background: linear-gradient(180deg, var(--blue-2), var(--blue));
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .summary-card {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      padding: 14px;
+      min-height: 102px;
+    }
+
+    .summary-card .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .summary-card .value {
+      font-size: 24px;
+      line-height: 1.05;
+      font-weight: 900;
+      letter-spacing: -.03em;
+    }
+
+    .summary-card .sub {
+      margin-top: 8px;
+      font-size: 11px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .accent { color: #bfdbfe; }
+    .good { color: #86efac; }
+    .violet { color: #ddd6fe; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+    }
+
+    .tag.weekend { background: rgba(245,158,11,.16); color: #fde68a; }
+    .tag.holiday { background: rgba(239,68,68,.16); color: #fecaca; }
+    .tag.extra { background: rgba(34,197,94,.16); color: #bbf7d0; }
+    .tag.night { background: rgba(96,165,250,.16); color: #bfdbfe; }
+    .tag.meal { background: rgba(168,85,247,.18); color: #e9d5ff; }
+    .tag.travel { background: rgba(14,165,233,.18); color: #bae6fd; }
+
+    .calendar-wrap {
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .calendar-weekdays,
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(148px, 1fr));
+      gap: 8px;
+      min-width: 1090px;
+    }
+
+    .calendar-weekdays {
+      margin-bottom: 8px;
+    }
+
+    .weekday {
+      text-align: center;
+      padding: 8px 0;
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.06);
+    }
+
+    .day-cell {
+      min-height: 244px;
+      padding: 10px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+      transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .day-cell.empty {
+      min-height: 0;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      pointer-events: none;
+      padding: 0;
+    }
+
+    .day-cell.weekend {
+      background: linear-gradient(180deg, rgba(245,158,11,.10), rgba(255,255,255,.04));
+    }
+
+    .day-cell.holiday {
+      box-shadow: inset 0 0 0 1px rgba(239,68,68,.28);
+    }
+
+    .day-cell.shift-1 { border-color: rgba(96,165,250,.22); background-image: linear-gradient(180deg, rgba(96,165,250,.10), rgba(255,255,255,.04)); }
+    .day-cell.shift-2 { border-color: rgba(99,102,241,.22); background-image: linear-gradient(180deg, rgba(99,102,241,.11), rgba(255,255,255,.04)); }
+    .day-cell.shift-3 { border-color: rgba(168,85,247,.28); background-image: linear-gradient(180deg, rgba(168,85,247,.12), rgba(255,255,255,.04)); }
+
+    .day-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .day-num {
+      font-size: 22px;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .day-weekday {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .period-pill {
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 900;
+      background: rgba(59,130,246,.14);
+      color: #dbeafe;
+      border: 1px solid rgba(59,130,246,.24);
+      white-space: nowrap;
+    }
+
+    .tap-zone {
+      min-height: 44px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 900;
+      padding: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .tap-zone.shift-1 { background: rgba(96,165,250,.16); color: #dbeafe; }
+    .tap-zone.shift-2 { background: rgba(99,102,241,.18); color: #e0e7ff; }
+    .tap-zone.shift-3 { background: rgba(168,85,247,.18); color: #f3e8ff; }
+    .tap-zone.shift-off { color: var(--muted); }
+
+    .shift-row,
+    .flags-row {
+      display: grid;
+      gap: 6px;
+    }
+
+    .shift-row { grid-template-columns: repeat(4, 1fr); }
+    .flags-row { grid-template-columns: 1fr 1fr; }
+
+    .shift-btn,
+    .flag-btn {
+      min-height: 40px;
+      width: 100%;
+      border-radius: 10px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.10);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .shift-btn.active,
+    .flag-btn.active {
+      color: var(--text);
+      border-color: rgba(96,165,250,.45);
+      background: rgba(96,165,250,.14);
+    }
+
+    .shift-btn.shift-1.active { background: rgba(96,165,250,.18); color: #dbeafe; }
+    .shift-btn.shift-2.active { background: rgba(99,102,241,.18); color: #e0e7ff; }
+    .shift-btn.shift-3.active { background: rgba(168,85,247,.20); color: #f3e8ff; }
+    .flag-btn.holiday.active { background: rgba(239,68,68,.18); color: #fee2e2; border-color: rgba(239,68,68,.34); }
+    .flag-btn.extra.active { background: rgba(34,197,94,.18); color: #dcfce7; border-color: rgba(34,197,94,.34); }
+
+    .markers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      min-height: 24px;
+    }
+
+    .marker {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 900;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+    }
+
+    .marker.weekend { color: #fde68a; background: rgba(245,158,11,.14); }
+    .marker.holiday { color: #fecaca; background: rgba(239,68,68,.14); }
+    .marker.extra { color: #bbf7d0; background: rgba(34,197,94,.14); }
+    .marker.night { color: #bfdbfe; background: rgba(96,165,250,.14); }
+    .marker.meal { color: #e9d5ff; background: rgba(168,85,247,.18); }
+    .marker.travel { color: #bae6fd; background: rgba(14,165,233,.18); }
+
+    .cell-totals {
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(255,255,255,.08);
+      display: grid;
+      gap: 5px;
+      font-size: 12px;
+    }
+
+    .mini-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .mini-line span:first-child { color: var(--muted); }
+    .mini-line strong { font-variant-numeric: tabular-nums; }
+
+    .payout-card {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .payout-card h3 {
+      margin: 0 0 10px;
+      font-size: 17px;
+    }
+
+    .line-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(255,255,255,.08);
+      font-size: 14px;
+    }
+
+    .line-item:last-child { border-bottom: 0; }
+    .line-item span:first-child { color: var(--muted); }
+    .line-item strong { font-variant-numeric: tabular-nums; }
+
+    .days-list {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      display: grid;
+      gap: 8px;
+    }
+
+    .days-list-title {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .days-list-items {
+      display: grid;
+      gap: 6px;
+      max-height: 220px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .day-list-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.06);
+      font-size: 13px;
+    }
+
+    .day-list-item small {
+      display: block;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .bottom-tip {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 760px) {
+      .form-grid,
+      .summary-cards,
+      .split-grid { grid-template-columns: 1fr; }
+      .calendar-weekdays,
+      .calendar-grid { min-width: 1060px; }
+      .day-cell { min-height: 252px; }
+      .shift-btn,
+      .flag-btn { min-height: 44px; font-size: 14px; }
+      .tap-zone { min-height: 48px; font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-left">
+          <div class="brand-icon">ЗП</div>
+          <div class="brand-title">
+            <h1>Калькулятор зарплаты</h1>
+            <p>Мобильное приложение по сменам · 3-я смена всегда +40%</p>
+          </div>
+        </div>
+        <button id="installBtn" class="install-btn" type="button">Установить</button>
+      </div>
+    </div>
+
+    <details class="section" open>
+      <summary>
+        <span>Настройки</span>
+        <span class="summary-right">Налог, оклад, норма часов</span>
+      </summary>
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="field">
+            <label for="monthPicker">Месяц</label>
+            <input id="monthPicker" type="month" />
+          </div>
+          <div class="field">
+            <label for="salaryGross">Оклад, ₽ (грязными)</label>
+            <input id="salaryGross" type="number" min="0" step="0.01" value="102000" />
+          </div>
+          <div class="field">
+            <label for="taxPercent">Налог, %</label>
+            <input id="taxPercent" type="number" min="0" max="100" step="0.01" value="14" />
+          </div>
+          <div class="field">
+            <label for="mealGross">Обед, ₽ (грязными)</label>
+            <input id="mealGross" type="number" min="0" step="0.01" value="800" />
+          </div>
+          <div class="field">
+            <label for="travelGross">Дорога, ₽ (грязными)</label>
+            <input id="travelGross" type="number" min="0" step="0.01" value="632" />
+          </div>
+          <div class="field">
+            <label for="nightPercent">Ночная надбавка, %</label>
+            <input id="nightPercent" type="number" min="0" step="0.01" value="40" />
+          </div>
+          <div class="field">
+            <label for="nightHours">Часы для ночной надбавки</label>
+            <input id="nightHours" type="number" min="0" step="0.01" value="6" />
+          </div>
+          <div class="field">
+            <span class="label">Норма часов месяца</span>
+            <label class="inline-check"><input id="autoNorm" type="checkbox" checked /> Автоматически</label>
+            <input id="normHours" type="number" min="0" step="0.01" value="0" />
+          </div>
+        </div>
+        <div class="note">
+          По умолчанию норма часов = <strong>8 × количество обычных смен</strong>. Если у бухгалтерии другая норма месяца, сними галочку и введи её вручную.
+        </div>
+        <div class="actions">
+          <button id="renderBtn" class="btn" type="button">Обновить месяц</button>
+          <button id="clearBtn" class="btn-secondary" type="button">Очистить месяц</button>
+        </div>
+      </div>
+    </details>
+
+    <section class="section">
+      <h2>Итог по месяцу</h2>
+      <div class="summary-cards">
+        <div class="summary-card">
+          <div class="label">Часовая ставка</div>
+          <div class="value accent" id="hourRateCard">0 ₽</div>
+          <div class="sub" id="normInfo">Норма часов: 0 ч</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Всего смен</div>
+          <div class="value" id="workedShiftsCard">0</div>
+          <div class="sub" id="workedMeta">Обычных: 0 · Праздников: 0 · Подработок: 0</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Начислено за месяц</div>
+          <div class="value" id="grossTotalCard">0 ₽</div>
+          <div class="sub" id="grossMeta">Оклад/смены: 0 ₽</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">К выплате за месяц</div>
+          <div class="value good" id="netTotalCard">0 ₽</div>
+          <div class="sub" id="netMeta">20-е: 0 ₽ · 5-е: 0 ₽</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Отдельно выплаты</div>
+          <div class="value violet" id="splitCard">0 ₽ / 0 ₽</div>
+          <div class="sub" id="splitMeta">Аванс и зарплата отдельно</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Календарь смен</h2>
+      <div class="legend">
+        <span class="tag weekend">Выходной</span>
+        <span class="tag holiday">Праздник</span>
+        <span class="tag extra">Подработка</span>
+        <span class="tag night">3-я смена</span>
+        <span class="tag meal">Обед</span>
+        <span class="tag travel">Дорога</span>
+      </div>
+      <div class="calendar-wrap">
+        <div class="calendar-weekdays">
+          <div class="weekday">Пн</div>
+          <div class="weekday">Вт</div>
+          <div class="weekday">Ср</div>
+          <div class="weekday">Чт</div>
+          <div class="weekday">Пт</div>
+          <div class="weekday">Сб</div>
+          <div class="weekday">Вс</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </div>
+      <div class="bottom-tip">
+        Для телефона оставил <strong>большую кнопку смены</strong> внутри каждого дня: один тап переключает смены по кругу <strong>— → 1 → 2 → 3 → —</strong>.
+        Ниже есть кнопки <strong>— / 1 / 2 / 3</strong> для точного выбора и отдельные кнопки <strong>праздник</strong> / <strong>подработка</strong>.
+      </div>
+    </section>
+
+    <details class="section" open>
+      <summary>
+        <span>Выплаты</span>
+        <span class="summary-right">20-е и 5-е число</span>
+      </summary>
+      <div class="section-body">
+        <div class="split-grid">
+          <div class="payout-card" id="period20Card"></div>
+          <div class="payout-card" id="period5Card"></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <script>
+    const SETTINGS_KEY = 'salary-phone-app-settings-v1';
+    const SCHEDULE_PREFIX = 'salary-phone-app-schedule-v1-';
+
+    const monthPicker = document.getElementById('monthPicker');
+    const salaryGrossInput = document.getElementById('salaryGross');
+    const taxPercentInput = document.getElementById('taxPercent');
+    const mealGrossInput = document.getElementById('mealGross');
+    const travelGrossInput = document.getElementById('travelGross');
+    const nightPercentInput = document.getElementById('nightPercent');
+    const nightHoursInput = document.getElementById('nightHours');
+    const autoNormInput = document.getElementById('autoNorm');
+    const normHoursInput = document.getElementById('normHours');
+    const renderBtn = document.getElementById('renderBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const installBtn = document.getElementById('installBtn');
+    const calendarGrid = document.getElementById('calendarGrid');
+
+    const hourRateCard = document.getElementById('hourRateCard');
+    const normInfo = document.getElementById('normInfo');
+    const workedShiftsCard = document.getElementById('workedShiftsCard');
+    const workedMeta = document.getElementById('workedMeta');
+    const grossTotalCard = document.getElementById('grossTotalCard');
+    const grossMeta = document.getElementById('grossMeta');
+    const netTotalCard = document.getElementById('netTotalCard');
+    const netMeta = document.getElementById('netMeta');
+    const splitCard = document.getElementById('splitCard');
+    const splitMeta = document.getElementById('splitMeta');
+    const period20Card = document.getElementById('period20Card');
+    const period5Card = document.getElementById('period5Card');
+
+    const weekdaysShort = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    const shiftCycle = ['off', '1', '2', '3'];
+    const state = { schedule: {}, resultsByDay: {} };
+    let deferredInstallPrompt = null;
+
+    function defaultMonthValue() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    function toNumber(value) {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function formatMoney(value) {
+      return new Intl.NumberFormat('ru-RU', {
+        style: 'currency',
+        currency: 'RUB',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(Number(value || 0));
+    }
+
+    function formatDate(date) {
+      return new Intl.DateTimeFormat('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).format(date);
+    }
+
+    function getSettings() {
+      return {
+        month: monthPicker.value || defaultMonthValue(),
+        salaryGross: toNumber(salaryGrossInput.value),
+        taxPercent: toNumber(taxPercentInput.value),
+        mealGross: toNumber(mealGrossInput.value),
+        travelGross: toNumber(travelGrossInput.value),
+        nightPercent: toNumber(nightPercentInput.value),
+        nightHours: toNumber(nightHoursInput.value),
+        autoNorm: autoNormInput.checked,
+        normHours: toNumber(normHoursInput.value),
+      };
+    }
+
+    function syncNormState() {
+      normHoursInput.disabled = autoNormInput.checked;
+    }
+
+    function saveSettings() {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(getSettings()));
+    }
+
+    function loadSettings() {
+      const defaults = {
+        month: defaultMonthValue(),
+        salaryGross: 102000,
+        taxPercent: 14,
+        mealGross: 800,
+        travelGross: 632,
+        nightPercent: 40,
+        nightHours: 6,
+        autoNorm: true,
+        normHours: 0,
+      };
+      let saved = {};
+      try { saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch (e) { saved = {}; }
+      const data = { ...defaults, ...saved };
+      monthPicker.value = data.month || defaultMonthValue();
+      salaryGrossInput.value = data.salaryGross;
+      taxPercentInput.value = data.taxPercent;
+      mealGrossInput.value = data.mealGross;
+      travelGrossInput.value = data.travelGross;
+      nightPercentInput.value = data.nightPercent;
+      nightHoursInput.value = data.nightHours;
+      autoNormInput.checked = Boolean(data.autoNorm);
+      normHoursInput.value = data.normHours;
+      syncNormState();
+    }
+
+    function scheduleKey(monthValue) {
+      return `${SCHEDULE_PREFIX}${monthValue}`;
+    }
+
+    function loadScheduleForCurrentMonth() {
+      try {
+        state.schedule = JSON.parse(localStorage.getItem(scheduleKey(monthPicker.value || defaultMonthValue())) || '{}').days || {};
+      } catch (e) {
+        state.schedule = {};
+      }
+    }
+
+    function saveSchedule() {
+      localStorage.setItem(scheduleKey(monthPicker.value || defaultMonthValue()), JSON.stringify({ days: state.schedule }));
+    }
+
+    function clearSchedule() {
+      localStorage.removeItem(scheduleKey(monthPicker.value || defaultMonthValue()));
+      state.schedule = {};
+      renderCalendar();
+    }
+
+    function parseMonthValue() {
+      const [year, month] = (monthPicker.value || defaultMonthValue()).split('-').map(Number);
+      return { year, month };
+    }
+
+    function daysInMonth(year, month) {
+      return new Date(year, month, 0).getDate();
+    }
+
+    function getMondayFirstIndex(jsDay) {
+      return jsDay === 0 ? 6 : jsDay - 1;
+    }
+
+    function getDayModel(day) {
+      const raw = state.schedule[String(day)] || {};
+      return {
+        shift: raw.shift || 'off',
+        holiday: Boolean(raw.holiday),
+        extra: Boolean(raw.extra),
+      };
+    }
+
+    function setDayModel(day, data) {
+      state.schedule[String(day)] = {
+        shift: data.shift,
+        holiday: Boolean(data.holiday),
+        extra: Boolean(data.extra),
+      };
+      saveSchedule();
+    }
+
+    function getDayMeta(day) {
+      const { year, month } = parseMonthValue();
+      const date = new Date(year, month - 1, day);
+      const idx = getMondayFirstIndex(date.getDay());
+      return {
+        weekdayShort: weekdaysShort[idx],
+        weekend: idx >= 5,
+        periodLabel: day <= 15 ? '20-е' : '5-е',
+      };
+    }
+
+    function computeAutoNormHours(rows) {
+      const regularCount = rows.filter((row) => row.worked && !row.holiday && !row.extra).length;
+      const workedCount = rows.filter((row) => row.worked).length;
+      return (regularCount > 0 ? regularCount : workedCount) * 8;
+    }
+
+    function calculateDay(row, settings, hourRate) {
+      if (!row.worked || hourRate <= 0) {
+        return { coreGross: 0, mealGross: 0, travelGross: 0, gross: 0, net: 0 };
+      }
+      const special = row.holiday || row.extra;
+      const baseShiftGross = hourRate * 8 * (special ? 2 : 1);
+      const nightBonusGross = row.shift === '3'
+        ? hourRate * (settings.nightPercent / 100) * settings.nightHours * (special ? 2 : 1)
+        : 0;
+      const coreGross = baseShiftGross + nightBonusGross;
+      const mealGross = (row.weekend || row.holiday || row.shift === '3') ? settings.mealGross : 0;
+      const travelGross = settings.travelGross;
+      const gross = coreGross + mealGross + travelGross;
+      const net = gross * (1 - settings.taxPercent / 100);
+      return { coreGross, mealGross, travelGross, gross, net };
+    }
+
+    function getShiftLabelShort(shift) {
+      if (shift === '1') return '1 смена';
+      if (shift === '2') return '2 смена';
+      if (shift === '3') return '3 смена';
+      return 'не работал';
+    }
+
+    function getTapLabel(shift) {
+      if (shift === '1') return '1 смена · 07:00–15:00';
+      if (shift === '2') return '2 смена · 15:00–23:00';
+      if (shift === '3') return '3 смена · 23:00–07:00';
+      return '— не работал';
+    }
+
+    function nextShift(current) {
+      const idx = shiftCycle.indexOf(current);
+      return shiftCycle[(idx + 1) % shiftCycle.length];
+    }
+
+    function buildMarkers(meta, model, result) {
+      const markers = [];
+      if (meta.weekend) markers.push('<span class="marker weekend">вых</span>');
+      if (model.holiday) markers.push('<span class="marker holiday">празд.</span>');
+      if (model.extra) markers.push('<span class="marker extra">подраб.</span>');
+      if (model.shift === '3') markers.push('<span class="marker night">ночь</span>');
+      if (result.mealGross > 0) markers.push('<span class="marker meal">обед</span>');
+      if (result.travelGross > 0) markers.push('<span class="marker travel">дорога</span>');
+      return markers.join('');
+    }
+
+    function buildShiftButtons(day, model) {
+      const variants = [
+        { value: 'off', label: '—' },
+        { value: '1', label: '1' },
+        { value: '2', label: '2' },
+        { value: '3', label: '3' },
+      ];
+      return variants.map((item) => `
+        <button type="button" class="shift-btn shift-${item.value} ${model.shift === item.value ? 'active' : ''}" data-day="${day}" data-shift="${item.value}">${item.label}</button>
+      `).join('');
+    }
+
+    function buildFlagButtons(day, model) {
+      return `
+        <button type="button" class="flag-btn holiday ${model.holiday ? 'active' : ''}" data-day="${day}" data-flag="holiday">праздник</button>
+        <button type="button" class="flag-btn extra ${model.extra ? 'active' : ''}" data-day="${day}" data-flag="extra">подработка</button>
+      `;
+    }
+
+    function buildDayCell(day, meta, model) {
+      const cell = document.createElement('div');
+      cell.className = `day-cell shift-${model.shift}`;
+      cell.dataset.day = String(day);
+      if (meta.weekend) cell.classList.add('weekend');
+      if (model.holiday) cell.classList.add('holiday');
+      cell.innerHTML = `
+        <div class="day-head">
+          <div>
+            <div class="day-num">${day}</div>
+            <div class="day-weekday">${meta.weekdayShort}</div>
+          </div>
+          <div class="period-pill">${meta.periodLabel}</div>
+        </div>
+        <button type="button" class="tap-zone shift-${model.shift}" data-day="${day}" data-role="cycle">${getTapLabel(model.shift)}</button>
+        <div class="shift-row">${buildShiftButtons(day, model)}</div>
+        <div class="flags-row">${buildFlagButtons(day, model)}</div>
+        <div class="markers"></div>
+        <div class="cell-totals">
+          <div class="mini-line"><span>грязными</span><strong class="cell-gross">${formatMoney(0)}</strong></div>
+          <div class="mini-line"><span>на руки</span><strong class="cell-net good">${formatMoney(0)}</strong></div>
+        </div>
+      `;
+      return cell;
+    }
+
+    function renderCalendar() {
+      const { year, month } = parseMonthValue();
+      const totalDays = daysInMonth(year, month);
+      const firstWeekdayIndex = getMondayFirstIndex(new Date(year, month - 1, 1).getDay());
+      calendarGrid.innerHTML = '';
+      for (let i = 0; i < firstWeekdayIndex; i += 1) {
+        const empty = document.createElement('div');
+        empty.className = 'day-cell empty';
+        calendarGrid.appendChild(empty);
+      }
+      for (let day = 1; day <= totalDays; day += 1) {
+        calendarGrid.appendChild(buildDayCell(day, getDayMeta(day), getDayModel(day)));
+      }
+      recalculate();
+    }
+
+    function updateDayFromAction(day, change) {
+      const current = getDayModel(day);
+      setDayModel(day, { ...current, ...change });
+      recalculate();
+    }
+
+    function renderDayList(items, allowancesInThisPayout) {
+      if (!items.length) {
+        return '<div class="day-list-item"><div>Нет отработанных дней</div><strong>0 ₽</strong></div>';
+      }
+      return items.map((item) => {
+        const marks = [getShiftLabelShort(item.shift)];
+        if (item.holiday) marks.push('праздник');
+        if (item.extra) marks.push('подработка');
+        const hint = allowancesInThisPayout
+          ? `Смена: ${formatMoney(item.coreGross)} · Допы: ${formatMoney(item.allowancesGross)}`
+          : `Смена: ${formatMoney(item.coreGross)}${item.allowancesGross ? ' · Допы уйдут в выплату 5-го: ' + formatMoney(item.allowancesGross) : ''}`;
+        return `
+          <div class="day-list-item">
+            <div>
+              <strong>${String(item.day).padStart(2, '0')} число</strong>
+              <small>${marks.join(' · ')}</small>
+              <small>${hint}</small>
+            </div>
+            <strong>${formatMoney(item.net)}</strong>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function recalculate() {
+      const settings = getSettings();
+      const { year, month } = parseMonthValue();
+      const totalDays = daysInMonth(year, month);
+      const rows = [];
+      for (let day = 1; day <= totalDays; day += 1) {
+        const meta = getDayMeta(day);
+        const model = getDayModel(day);
+        rows.push({
+          day,
+          weekend: meta.weekend,
+          shift: model.shift,
+          holiday: model.holiday,
+          extra: model.extra,
+          worked: model.shift !== 'off',
+        });
+      }
+
+      let normHours = settings.normHours;
+      if (settings.autoNorm) {
+        normHours = computeAutoNormHours(rows);
+        normHoursInput.value = normHours;
+      }
+      const safeNormHours = normHours > 0 ? normHours : 0;
+      const hourRate = safeNormHours > 0 ? settings.salaryGross / safeNormHours : 0;
+      const taxFactor = settings.taxPercent / 100;
+      const netFactor = 1 - taxFactor;
+
+      state.resultsByDay = {};
+
+      let workedCount = 0;
+      let regularCount = 0;
+      let holidayCount = 0;
+      let extraCount = 0;
+      let nightCount = 0;
+      let firstHalfCoreGross = 0;
+      let secondHalfCoreGross = 0;
+      let mealGrossTotal = 0;
+      let travelGrossTotal = 0;
+      let totalGross = 0;
+      let totalNet = 0;
+      const firstHalfDays = [];
+      const secondHalfDays = [];
+
+      rows.forEach((row) => {
+        const result = calculateDay(row, settings, hourRate);
+        state.resultsByDay[String(row.day)] = result;
+        const cell = document.querySelector(`.day-cell[data-day="${row.day}"]`);
+        if (cell) {
+          const meta = getDayMeta(row.day);
+          const model = getDayModel(row.day);
+          cell.className = `day-cell shift-${model.shift}`;
+          if (meta.weekend) cell.classList.add('weekend');
+          if (model.holiday) cell.classList.add('holiday');
+          const tapZone = cell.querySelector('.tap-zone');
+          tapZone.className = `tap-zone shift-${model.shift}`;
+          tapZone.textContent = getTapLabel(model.shift);
+          cell.querySelectorAll('.shift-btn').forEach((btn) => btn.classList.toggle('active', btn.dataset.shift === model.shift));
+          cell.querySelector('.flag-btn.holiday').classList.toggle('active', model.holiday);
+          cell.querySelector('.flag-btn.extra').classList.toggle('active', model.extra);
+          cell.querySelector('.markers').innerHTML = buildMarkers(meta, model, result);
+          cell.querySelector('.cell-gross').textContent = formatMoney(result.gross);
+          cell.querySelector('.cell-net').textContent = formatMoney(result.net);
+        }
+
+        if (!row.worked) return;
+        workedCount += 1;
+        if (!row.holiday && !row.extra) regularCount += 1;
+        if (row.holiday) holidayCount += 1;
+        if (row.extra) extraCount += 1;
+        if (row.shift === '3') nightCount += 1;
+
+        mealGrossTotal += result.mealGross;
+        travelGrossTotal += result.travelGross;
+        totalGross += result.gross;
+        totalNet += result.net;
+
+        const dayRecord = {
+          day: row.day,
+          shift: row.shift,
+          holiday: row.holiday,
+          extra: row.extra,
+          coreGross: result.coreGross,
+          allowancesGross: result.mealGross + result.travelGross,
+          net: result.net,
+        };
+        if (row.day <= 15) {
+          firstHalfCoreGross += result.coreGross;
+          firstHalfDays.push(dayRecord);
+        } else {
+          secondHalfCoreGross += result.coreGross;
+          secondHalfDays.push(dayRecord);
+        }
+      });
+
+      const allowancesGrossTotal = mealGrossTotal + travelGrossTotal;
+      const payout20Gross = firstHalfCoreGross;
+      const payout20Tax = payout20Gross * taxFactor;
+      const payout20Net = payout20Gross * netFactor;
+      const payout5Gross = secondHalfCoreGross + allowancesGrossTotal;
+      const payout5Tax = payout5Gross * taxFactor;
+      const payout5Net = payout5Gross * netFactor;
+      const grossCoreTotal = firstHalfCoreGross + secondHalfCoreGross;
+      const payout20Date = formatDate(new Date(year, month - 1, 20));
+      const payout5Date = formatDate(new Date(year, month, 5));
+
+      hourRateCard.textContent = formatMoney(hourRate);
+      normInfo.textContent = safeNormHours > 0 ? `Норма часов: ${safeNormHours} ч` : 'Нужно указать норму часов > 0';
+      workedShiftsCard.textContent = String(workedCount);
+      workedMeta.textContent = `Обычных: ${regularCount} · Праздников: ${holidayCount} · Подработок: ${extraCount} · 3-я смена: ${nightCount}`;
+      grossTotalCard.textContent = formatMoney(totalGross);
+      grossMeta.textContent = `Оклад/смены: ${formatMoney(grossCoreTotal)} · Обеды: ${formatMoney(mealGrossTotal)} · Дорога: ${formatMoney(travelGrossTotal)}`;
+      netTotalCard.textContent = formatMoney(totalNet);
+      netMeta.textContent = `20-е: ${formatMoney(payout20Net)} · 5-е: ${formatMoney(payout5Net)}`;
+      splitCard.textContent = `${formatMoney(payout20Net)} / ${formatMoney(payout5Net)}`;
+      splitMeta.textContent = `20-е: ${formatMoney(payout20Gross)} грязными · 5-е: ${formatMoney(payout5Gross)} грязными`;
+
+      period20Card.innerHTML = `
+        <h3>Аванс / выплата 20-го числа <span class="small">(${payout20Date})</span></h3>
+        <div class="line-item"><span>Смены 1–15 числа, грязными</span><strong>${formatMoney(payout20Gross)}</strong></div>
+        <div class="line-item"><span>Налог ${settings.taxPercent}%</span><strong>− ${formatMoney(payout20Tax)}</strong></div>
+        <div class="line-item"><span>К выплате на руки</span><strong class="good">${formatMoney(payout20Net)}</strong></div>
+        <div class="days-list">
+          <div class="days-list-title">Какие дни вошли в выплату 20-го</div>
+          <div class="days-list-items">${renderDayList(firstHalfDays, false)}</div>
+        </div>
+      `;
+
+      period5Card.innerHTML = `
+        <h3>Зарплата / выплата 5-го числа <span class="small">(${payout5Date})</span></h3>
+        <div class="line-item"><span>Смены 16–конец месяца, грязными</span><strong>${formatMoney(secondHalfCoreGross)}</strong></div>
+        <div class="line-item"><span>Обеды за месяц, грязными</span><strong>${formatMoney(mealGrossTotal)}</strong></div>
+        <div class="line-item"><span>Дорога за месяц, грязными</span><strong>${formatMoney(travelGrossTotal)}</strong></div>
+        <div class="line-item"><span>Итого база для 5-го числа</span><strong>${formatMoney(payout5Gross)}</strong></div>
+        <div class="line-item"><span>Налог ${settings.taxPercent}%</span><strong>− ${formatMoney(payout5Tax)}</strong></div>
+        <div class="line-item"><span>К выплате на руки</span><strong class="good">${formatMoney(payout5Net)}</strong></div>
+        <div class="days-list">
+          <div class="days-list-title">Какие дни вошли в выплату 5-го</div>
+          <div class="days-list-items">${renderDayList(secondHalfDays, true)}</div>
+        </div>
+      `;
+    }
+
+    function bindCalendarEvents() {
+      calendarGrid.addEventListener('click', (event) => {
+        const cycleBtn = event.target.closest('.tap-zone');
+        if (cycleBtn) {
+          const day = Number(cycleBtn.dataset.day);
+          const current = getDayModel(day);
+          updateDayFromAction(day, { shift: nextShift(current.shift) });
+          return;
+        }
+        const shiftBtn = event.target.closest('.shift-btn');
+        if (shiftBtn) {
+          updateDayFromAction(Number(shiftBtn.dataset.day), { shift: shiftBtn.dataset.shift });
+          return;
+        }
+        const flagBtn = event.target.closest('.flag-btn');
+        if (flagBtn) {
+          const day = Number(flagBtn.dataset.day);
+          const flag = flagBtn.dataset.flag;
+          const current = getDayModel(day);
+          updateDayFromAction(day, { [flag]: !current[flag] });
+        }
+      });
+    }
+
+    function bindStaticEvents() {
+      renderBtn.addEventListener('click', () => {
+        saveSettings();
+        loadScheduleForCurrentMonth();
+        renderCalendar();
+      });
+      clearBtn.addEventListener('click', clearSchedule);
+
+      [monthPicker, salaryGrossInput, taxPercentInput, mealGrossInput, travelGrossInput, nightPercentInput, nightHoursInput, normHoursInput].forEach((input) => {
+        input.addEventListener('input', () => {
+          saveSettings();
+          recalculate();
+        });
+        input.addEventListener('change', () => {
+          saveSettings();
+          if (input === monthPicker) {
+            loadScheduleForCurrentMonth();
+            renderCalendar();
+          } else {
+            recalculate();
+          }
+        });
+      });
+
+      autoNormInput.addEventListener('change', () => {
+        syncNormState();
+        saveSettings();
+        recalculate();
+      });
+    }
+
+    function initInstallPrompt() {
+      window.addEventListener('beforeinstallprompt', (event) => {
+        event.preventDefault();
+        deferredInstallPrompt = event;
+        installBtn.classList.add('visible');
+      });
+
+      installBtn.addEventListener('click', async () => {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        installBtn.classList.remove('visible');
+      });
+
+      window.addEventListener('appinstalled', () => {
+        deferredInstallPrompt = null;
+        installBtn.classList.remove('visible');
+      });
+    }
+
+    function registerServiceWorker() {
+      if (!('serviceWorker' in navigator)) return;
+      const isServed = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+      if (!isServed) return;
+      navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+    }
+
+    loadSettings();
+    loadScheduleForCurrentMonth();
+    bindCalendarEvents();
+    bindStaticEvents();
+    initInstallPrompt();
+    registerServiceWorker();
+    renderCalendar();
+  </script>
+</body>
+</html>
